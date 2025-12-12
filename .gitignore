@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+
+# Conda / virtualenv
+.env/
+.venv/
+env/
+venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Ignore 
+
+data/
+OCID-VLG/
+catalog.csv
+README.txt
+scripts-to-ignore/

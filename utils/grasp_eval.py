@@ -458,8 +458,8 @@ def calculate_iou(rect_p, rect_gt, shape=(480, 640), angle_threshold=30,verbose=
     center_x, center_y, w_rect, h_rect, theta, *_ = rect_gt
     gt_r_rect = ((center_x, center_y), (w_rect, h_rect), -theta)
     gt_box = cv2.boxPoints(gt_r_rect)
-    gt_box = np.int0(gt_box)
-    rr1, cc1 = polygon(gt_box[:, 0], gt_box[:, 1], shape)
+    gt_box = np.intp(gt_box)
+    rr1, cc1 = polygon(gt_box[:, 0], gt_box[:,1], shape)
 
     # Ensure indexing remains in-bounds
     mask_rr = rr1 < shape[1]
@@ -478,8 +478,8 @@ def calculate_iou(rect_p, rect_gt, shape=(480, 640), angle_threshold=30,verbose=
     center_x, center_y, w_rect, h_rect, theta = rect_p
     p_r_rect = ((center_x, center_y), (w_rect, h_rect), -theta)
     p_box = cv2.boxPoints(p_r_rect)
-    p_box = np.int0(p_box)
-    rr2, cc2 = polygon(p_box[:, 0], p_box[:, 1], shape)
+    p_box = np.intp(p_box)
+    rr2, cc2 = polygon(p_box[:, 0], p_box[:,1], shape)
 
     # Ensure indexing remains in-bounds
     mask_rr = rr2 < shape[1]

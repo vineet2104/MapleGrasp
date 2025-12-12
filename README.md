@@ -1,6 +1,6 @@
-# MapleGrasp: Mask-guided Feature Pooling for Language-driven Efficient Robotic Grasping (ArXiv 2025)
+# MapleGrasp: Mask-guided Feature Pooling for Language-driven Efficient Robotic Grasping (WACV 2026)
 
-Created by Vineet, Naman Patel, Prashanth Krishnamurthy, Ramesh Karri and Farshad Khorrami
+Authors: Vineet Bhat, Naman Patel, Prashanth Krishnamurthy, Ramesh Karri and Farshad Khorrami
 
 This is an official PyTorch implementation of the baseline end-to-end model [MapleGrasp](https://www.arxiv.org/abs/2506.06535) of our work. The implementation of our MapleGrasp model is based on the [CROG](https://github.com/HilbertXu/CROG) model, thanks for their amazing work!
 
@@ -8,14 +8,18 @@ Robotic manipulation of unseen objects via natural language commands remains cha
 
 ## Preparation
 
-1. Environment
-   - use the environment.yml file to create the conda env.
+1. Create conda environment
+
+```bash
+      conda env create -f environment.yml
+```
+
 2. Datasets
    - Please download the [OCID-VLG](https://github.com/gtziafas/OCID-VLG) dataset by following the instructions and directory formatting.
 
 ## Training
 
-```
+```bash
 python train_maplegrasp.py --config config/OCID-VLG/maplegrasp_multiple_r50.yaml
 ```
 
@@ -23,7 +27,7 @@ Please appropriately modify the stage 1 and stage 2 parameters in the yaml file 
 
 ## Evaluation
 
-```
+```bash
 python test.py --config config/OCID-VLG/maplegrasp_multiple_r50.yaml
 ```
 

@@ -62,7 +62,7 @@ def main():
     logger.info(args)
 
     # build model
-    model,_ = build_crogpp(args)
+    model,_ = build_maplegrasp(args)
     
     model = nn.SyncBatchNorm.convert_sync_batchnorm(model)
     model = nn.parallel.DistributedDataParallel(model.cuda(),device_ids=[0],find_unused_parameters=True)
