@@ -810,7 +810,7 @@ class OCIDVLGDataset(Dataset):
 
     def _load_split(self):
         refer_data = json.load(open(os.path.join(self.refer_dir, self.split_map[self.split])))
-        img_text_to_mask_dict = json.load(open('/data/vineet/MapleGrasp/data/OCID-VLG/img_text_to_maskindex.json'))
+        img_text_to_mask_dict = json.load(open('./data/OCID-VLG/img_text_to_maskindex.json'))
         self.seq_paths, self.img_names, self.scene_ids = [], [], []
         self.bboxes, self.grasps = [], []
         self.sent_to_index, self.sent_indices = {}, []

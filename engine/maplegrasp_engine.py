@@ -44,9 +44,7 @@ def train_with_grasp(train_loader, model, optimizer, scheduler, scaler, epoch, a
     # new_size = size_list[idx]
 
     for i, data in enumerate(train_loader):
-        # image, target, text = data
-        # ins_mask, grasp_quality_mask, grasp_sin_mask, grasp_cos_mask, grasp_width_mask = target
-        
+                
         image = data["img"] # (bs,3,416,416)
         if("CLIPSEG" in args.exp_name): # For clipseg the input text needs to be a list of strings
             text = data['sentence'] # len(text) = bs
@@ -71,8 +69,6 @@ def train_with_grasp(train_loader, model, optimizer, scheduler, scaler, epoch, a
         grasp_cos_mask = grasp_cos_mask.cuda(non_blocking=True).unsqueeze(1)
         grasp_wid_mask = grasp_wid_mask.cuda(non_blocking=True).unsqueeze(1)
 
-        # # multi-scale training
-        # image = F.interpolate(image, size=(new_size, new_size), mode='bilinear')
 
         # forward
         with amp.autocast():
@@ -80,14 +76,6 @@ def train_with_grasp(train_loader, model, optimizer, scheduler, scaler, epoch, a
         
         ins_mask_pred = pred[0]
         ins_mask_target = target[0]
-
-        #print("ins_mask_pred shape = ",ins_mask_pred.shape) # (bs,1,104,104)
-        #print("ins_mask_target shape = ",ins_mask_target.shape) # (bs,1,104,104)
-
-        #print("ins_mask_target values = ",np.unique(ins_mask_target.cpu().numpy(),return_counts=True)) # 0,1
-        #print("pred values = ",np.unique(ins_mask_pred.cpu().numpy(),return_counts=True)) # 0,1
-        #import sys
-        #sys.exit(0)
 
         # backward
         optimizer.zero_grad()
@@ -119,21 +107,6 @@ def train_with_grasp(train_loader, model, optimizer, scheduler, scaler, epoch, a
 
         if (i + 1) % args.print_freq == 0:
             progress.display(i + 1)
-            # if dist.get_rank() in [-1, 0]:
-            #     wandb.log(
-            #         {
-            #             "time/batch": batch_time.val,
-            #             "time/data": data_time.val,
-            #             "training/lr": lr.val,
-            #             "training/loss": loss_meter.val,
-            #             "training/loss_qua": qua_loss_metter.val,
-            #             "training/loss_sin": sin_loss_metter.val,
-            #             "training/loss_cos": cos_loss_metter.val,
-            #             "training/loss_wid": wid_loss_metter.val,
-            #             "training/iou": iou_meter.val,
-            #             "training/prec@50": pr_meter.val,
-            #         },
-            #         step=epoch * len(train_loader) + (i + 1))
 
 
 @torch.no_grad()
@@ -153,14 +126,6 @@ def validate_with_grasp(val_loader, model, epoch, args,use_center_metric=False):
     # ── 2️⃣ switch everything to eval first (locks dropout, LN, etc.) ─────
     model.eval()
 
-    # ── 3️⃣ put *only* BatchNorm layers (incl. SyncBN) back to train mode ─
-    def _activate_bn_train(m):
-        if isinstance(m, _BatchNorm):
-            m.train()
-    model.apply(_activate_bn_train)
-
-    time.sleep(2)
-
     num_grasps = [1,5]
     num_correct_grasps = [0, 0]
     num_total_grasps = [0, 0]
@@ -174,7 +139,7 @@ def validate_with_grasp(val_loader, model, epoch, args,use_center_metric=False):
         else:
             text = data["word_vec"] # (bs,17)
             text = text.cuda(non_blocking=True)
-        #text = data["word_vec"]
+        
         ins_mask = data["mask"]
         grasp_qua_mask = data["grasp_masks"]["qua"]
         grasp_sin_mask = data["grasp_masks"]["sin"]
@@ -335,16 +300,6 @@ def validate_without_grasp(val_loader, model, epoch, args):
     # ── 2️⃣ switch everything to eval first (locks dropout, LN, etc.) ─────
     model.eval()
 
-    # ── 3️⃣ put *only* BatchNorm layers (incl. SyncBN) back to train mode ─
-    def _activate_bn_train(m):
-        if isinstance(m, _BatchNorm):
-            m.train()
-    model.apply(_activate_bn_train)
-    # for m in model.modules():             # flip ONLY BatchNorm layers
-    #     if isinstance(m, torch.nn.BatchNorm2d):
-    #         print("YESSSS")
-    #         m.train()
-    time.sleep(2)
     logger.info("Validating without grasp")
     num_grasps = [1,5]
     num_correct_grasps = [0, 0]
@@ -369,7 +324,7 @@ def validate_without_grasp(val_loader, model, epoch, args):
         grasp_targets = data["grasps"]
         
         image = image.cuda(non_blocking=True)
-        #text = text.cuda(non_blocking=True)
+        
         ins_mask = ins_mask.cuda(non_blocking=True).unsqueeze(1)
         grasp_qua_mask = grasp_qua_mask.cuda(non_blocking=True).unsqueeze(1)
         grasp_sin_mask = grasp_sin_mask.cuda(non_blocking=True).unsqueeze(1)
@@ -377,19 +332,10 @@ def validate_without_grasp(val_loader, model, epoch, args):
         grasp_wid_mask = grasp_wid_mask.cuda(non_blocking=True).unsqueeze(1)
         
         # inference & get predictions from model
-        #with amp.autocast():
+        
         pred, ins_mask_targets = model(image, text, ins_mask, grasp_qua_mask, grasp_sin_mask, grasp_cos_mask, grasp_wid_mask)
         
-        #print("Pred shape = ",pred.shape) # (bs,1,104,104)
-        #print("ins_mask_targets shape = ",ins_mask_targets.shape) # (bs,1,416,416)
-        #print("image shape = ",image.shape) # (bs,3,416,416)
-        # Interpolate the predicted ins mask to the same size of input image
-        # print("pred = ",pred)
-        # print("Pred type = ",type(pred)) # torch.Tensor
-        # print("Pred shape = ",pred.shape) # (bs,1,104,104)
-
-        #print("ins_mask_target values = ",np.unique(ins_mask_targets.cpu().numpy(),return_counts=True)) # 0,1
-        #print("pred values = ",np.unique(pred.cpu().numpy(),return_counts=True)) # 0,1
+        
         
 
         ins_mask_preds = torch.sigmoid(pred)
@@ -417,10 +363,6 @@ def validate_without_grasp(val_loader, model, epoch, args):
             #print("ins_mask_target shape = ",ins_mask_target.shape) # (416,416)
             ins_mask_target = inverse(ins_mask_target, inv_mat, w, h)
 
-            #print("[Just before IOU] ins_mask_pred shape = ",ins_mask_pred.shape) # (416,416)
-            #print("[Just before IOU] ins_mask_target shape = ",ins_mask_target.shape) # (416,416)
-            #import sys
-            #sys.exit(0)
             # Calculate IoU between predicted instance mask and gt
             inter = np.logical_and(ins_mask_pred, ins_mask_target)
             union = np.logical_or(ins_mask_pred, ins_mask_target)
@@ -429,17 +371,7 @@ def validate_without_grasp(val_loader, model, epoch, args):
             #print("Sample IOU = ", iou)
             iou_list.append(iou)
         
-        #display partial results - IOU, Jaccard Index after 100 batches
-        # if(cnt%3==0 and cnt!=0):
-        #     print("Partial Results: ")
-        #     iou_list_ = np.stack(iou_list)
-        #     iou_list_ = torch.from_numpy(iou_list_).to(image.device)
-        #     print("IoU: ", iou_list_.mean())
-        #     J_index_ = [0, 0]
-        #     for i in range(len(num_grasps)):
-        #         J_index_[i] = num_correct_grasps[i]/num_total_grasps[i]
-        #     print("J@1: ", J_index_[0])
-        #     print("J@5: ", J_index_[1])
+        
     
     J_index = [0, 0]
     
@@ -598,10 +530,6 @@ def inference_with_grasp(test_loader, model, args):
             grasp_cos_mask_target = inverse(grasp_cos_mask_target, inv_mat, w, h)
             grasp_wid_mask_target = inverse(grasp_wid_mask_target, inv_mat, w, h)
             
-            # Calculate IoU between predicted instance mask and gt
-            # if ins_mask_targets contains 0s and 1s, convert them to bool
-            # if ins_mask_target.dtype == np.uint8:
-            #     ins_mask_target = ins_mask_target.astype(bool)
 
             inter = np.logical_and(ins_mask_pred, ins_mask_target)
             union = np.logical_or(ins_mask_pred, ins_mask_target)
@@ -626,17 +554,7 @@ def inference_with_grasp(test_loader, model, args):
                     visualization(img, ins_mask_pred, (grasp_qua_mask_pred, grasp_ang_mask_pred, grasp_wid_mask_pred), grasp_preds, sent, save_path=os.path.join("./results", args.output_dir.replace("exp/",""), f"results_{counter}_grasps_preds.png"))
                     counter+=1
                 
-        #display partial results - IOU, Jaccard Index after 100 batches
-        # if(cnt%3==0 and cnt!=0):
-        #     print("Partial Results: ")
-        #     iou_list_ = np.stack(iou_list)
-        #     iou_list_ = torch.from_numpy(iou_list_).to(image.device)
-        #     print("IoU: ", iou_list_.mean())
-        #     J_index_ = [0, 0]
-        #     for i in range(len(num_grasps)):
-        #         J_index_[i] = num_correct_grasps[i]/num_total_grasps[i]
-        #     print("J@1: ", J_index_[0])
-        #     print("J@5: ", J_index_[1])
+        
 
     J_index = [0, 0]
     for i in range(len(num_grasps)):
@@ -644,8 +562,7 @@ def inference_with_grasp(test_loader, model, args):
             
     iou_list = np.stack(iou_list)
     iou_list = torch.from_numpy(iou_list).to(image.device)
-    # print(iou_list)
-    # iou_list = concat_all_gather(iou_list)
+    
     prec_list = []
     for thres in torch.arange(0.5, 1.0, 0.1):
         tmp = (iou_list > thres).float().mean()

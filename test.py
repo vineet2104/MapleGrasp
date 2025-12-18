@@ -12,7 +12,7 @@ from loguru import logger
 from model.clipseg import CLIPSEG
 from model.lgrconvnet import LGRCONVNET
 import utils.config as config
-from engine.crog_engine import inference_with_grasp,validate_with_grasp
+from engine.maplegrasp_engine import inference_with_grasp,validate_with_grasp,validate_without_grasp
 from model import build_crog,build_maplegrasp
 from utils.dataset import OCIDVLGDataset,RoboRefGrasp,LiberoRGS
 from utils.misc import setup_logger
